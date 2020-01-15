@@ -1,6 +1,7 @@
 package flappyking.states;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
@@ -21,12 +22,14 @@ import flappyking.game.Pipe;
  */
 public class PlayState extends State {
 	private Texture floor;
-	private Array<Game> games;
+	protected Array<Game> games;
 	private ShapeRenderer shapeRenderer;
 	private BitmapFont textRenderer;
 	
+	//Works, but doesn't look good as code. Improve later on.
 	private Bird tempBird;
-	private boolean anyGameRunning;
+	protected boolean anyGameRunning;
+	protected int indexLastGameRunning;
 	
 	/**
 	 * <h1>PlayState Constructor</h1>
@@ -36,8 +39,8 @@ public class PlayState extends State {
 	 * @param width Application Width
 	 * @param height Application Height
 	 */
-	public PlayState(GameStateManager gsm, int width, int height, Game...games) {
-		super(gsm, width, height);
+	public PlayState(GameStateManager gsm, Game...games) {
+		super(gsm);
 		
 		floor = new Texture("floor.png");
 		shapeRenderer = new ShapeRenderer();
@@ -46,7 +49,7 @@ public class PlayState extends State {
 		
 		textRenderer.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
 		
-		anyGameRunning = false;
+		anyGameRunning = true;
 	}
 
 	/**
@@ -55,7 +58,11 @@ public class PlayState extends State {
 	 */
 	@Override
 	public void handleInput() {
-		// game.handleInput()
+		if(Gdx.input.isKeyJustPressed(Keys.ESCAPE)) {
+			//TODO save the games
+			dispose();
+			gsm.set(new MenuState(gsm));
+		}
 	}
 
 	/**
@@ -69,19 +76,17 @@ public class PlayState extends State {
 	 */
 	@Override
 	public void update(float dt) {
-		handleInput();
-		for(Game game : games) {
-			if(game.isPlaying()) {
-				game.handleInput();
-				game.update(dt);
-				anyGameRunning = true;
+		if(anyGameRunning) {
+			anyGameRunning = false;
+			for(Game game : games) {
+				if(game.isPlaying()) {
+					game.handleInput();
+					game.update(dt);
+					anyGameRunning = true;
+					indexLastGameRunning = games.indexOf(game, true);
+				}
 			}
 		}
-		if(!anyGameRunning) {
-			dispose();
-			gsm.set(new MenuState(gsm, width, height));
-		}
-		anyGameRunning = false;
 	}
 	
 	/**
@@ -98,9 +103,8 @@ public class PlayState extends State {
 		sb.draw(background, 0, 0);
 		
 		//Rendering the Pipes
-		int iterator = 0;
 		for(Game game : games) {
-			if(game.isPlaying()) {
+			if(game.isBeingRendered() && games.indexOf(game, true) == indexLastGameRunning) {
 		    	for(Pipe pipe : game.getPipes()) {
 		    		sb.draw(pipe.getBottomPipe(), pipe.getLocationBottomPipe().x, pipe.getLocationBottomPipe().y);
 		    		sb.draw(pipe.getTopPipe(), pipe.getLocationTopPipe().x, pipe.getLocationTopPipe().y);
@@ -112,6 +116,7 @@ public class PlayState extends State {
 		sb.draw(floor, 0, 0);
 		
 		//Rendering the Scores
+		int iterator = 0;
 		textRenderer.getData().setScale(Constants.SCORE_SCALE);
 		for(Game game : games) {
 			textRenderer.setColor(game.getBird().getFill());
@@ -146,9 +151,5 @@ public class PlayState extends State {
 		floor.dispose();
 		shapeRenderer.dispose();
 		textRenderer.dispose();
-		for(Game game : games) {
-			game.dispose();
-		}
-		//TODO dispose Pipe Textures
 	}
 }

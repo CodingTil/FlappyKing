@@ -11,10 +11,11 @@ public class Game {
 	private Random random;
 
 	private int score;
-	private boolean justScoredFirstPipe;
+	private boolean justScoredPipe;
+	private int indexNextPipe;
+	private double distanceTraveled;
 	private boolean playing;
-
-	private int width;
+	private boolean beingRendered;
 	
 	/**
 	 * <h1>Game Constructor</h1>
@@ -23,14 +24,15 @@ public class Game {
 	 * 
 	 * @param width Width of the Game
 	 */
-	public Game(Bird bird, int width) {
+	public Game(Bird bird, boolean beingRendered) {
 		pipes = new Array<Pipe>();
 		score = 0;
-		justScoredFirstPipe = false;
+		justScoredPipe = false;
+		indexNextPipe = 0;
 		playing = true;
+		this.beingRendered = beingRendered;
 		this.random = ThreadLocalRandom.current();
 		this.bird = bird;
-		this.width = width;
 	}
 	
 	/**
@@ -40,8 +42,8 @@ public class Game {
 	 * @param width Width of the Game
 	 * @param random Used to create identical games. Default: ThreadLocalRandom
 	 */
-	public Game(Bird bird, int width, Random random) {
-		this(bird, width);
+	public Game(Bird bird, boolean beingRendered, Random random) {
+		this(bird, beingRendered);
 		this.random = random;
 	}
 	
@@ -65,8 +67,11 @@ public class Game {
 	 */
 	public void update(float dt) {
 		generatePipes();
+		indexNextPipe = getIndexofNextPipe();
+		distanceTraveled += (double) dt * (- Constants.PIPE_VELOCITY);
 		
-		bird.update(dt);
+		double[] input = new double[]{Constants.map(pipes.get(indexNextPipe).getLocationTopPipe().x - bird.x, 0, (score == 0 ? Constants.WIDTH : Constants.PIPE_GAP_HORIZONTAL) + Constants.PIPE_WIDTH, 0, 1), Constants.map((pipes.get(indexNextPipe).getLocationTopPipe().y - Constants.PIPE_GAP_VERTICAL * 0.5), Constants.PIPE_LOWEST_OPENING + Constants.PIPE_GAP_VERTICAL * 0.5, Constants.PIPE_LOWEST_OPENING + Constants.PIPE_FLUCTUATION + Constants.PIPE_GAP_VERTICAL * 0.5, 0, 1)};
+		bird.update(dt, input);
 		for(Pipe pipe : pipes) {
 			pipe.update(dt);
 		}
@@ -77,23 +82,19 @@ public class Game {
 	}
 	
 	/**
-	 * Disposes all unused Textures
-	 */
-	public void dispose() {
-		for(Pipe pipe : pipes) {
-			pipe.dispose();
-		}
-	}
-	
-	/**
 	 * <h1>Collision Detection Algorithm</h1>
-	 * Checks Collisions with the Pipes and the Floor
+	 * Checks Collisions with the Pipes, Floor and Sky
 	 * 
 	 * @return Returns true, if a Collision could be detected, false if not.
 	 */
 	private boolean detectCollision() {
 		// Ground Detection
 		if (bird.y - bird.radius <= Constants.FLOOR_HEIGHT) {
+			return true;
+		}
+		
+		// Sky Detection
+		if(bird.y - bird.radius > Constants.HEIGHT) {
 			return true;
 		}
 
@@ -115,8 +116,8 @@ public class Game {
 	 */
 	private boolean detectScore() {
 		Pipe firstPipe = pipes.get(0);
-		if(!justScoredFirstPipe && bird.x > firstPipe.getLocationTopPipe().x + firstPipe.getHitboxTopPipe().width) {
-			justScoredFirstPipe = true;
+		if(!justScoredPipe && bird.x > firstPipe.getLocationTopPipe().x + Constants.PIPE_WIDTH) {
+			justScoredPipe = true;
 			return true;
 		}
 		return false;
@@ -138,23 +139,31 @@ public class Game {
 			// Game Start
 			for (int i = 0; i < Constants.PIPE_COUNT; i++) {
 				if(i == 0) {
-					pipes.add(new Pipe(width, random));
+					pipes.add(new Pipe(Constants.WIDTH, beingRendered, random));
 				}else {
-					pipes.add(new Pipe(width + i * (Constants.PIPE_GAP_HORIZONTAL + pipes.get(0).getTopPipe().getWidth()), random));
+					pipes.add(new Pipe(pipes.get(i - 1).getLocationTopPipe().x + Constants.PIPE_WIDTH + Constants.PIPE_GAP_HORIZONTAL, beingRendered, random));
 				}
 			}
 		} else {
 			
 			// Mid Game
-			Pipe firstPipe = pipes.get(0);
-			if (firstPipe.getLocationTopPipe().x + firstPipe.getTopPipe().getWidth() < 0) {
-				justScoredFirstPipe = false;
+			Pipe firstPipe = pipes.first();
+			if (firstPipe.getLocationTopPipe().x + Constants.PIPE_WIDTH < 0) {
+				justScoredPipe = false;
 				Pipe lastPipe = pipes.get(pipes.size - 1);
 				// Repositioning the Pipe and putting it to the end of the Array
 				pipes.removeIndex(0);
-				firstPipe.reposition(lastPipe.getLocationTopPipe().x + lastPipe.getTopPipe().getWidth() + Constants.PIPE_GAP_HORIZONTAL);
+				firstPipe.reposition(lastPipe.getLocationTopPipe().x + Constants.PIPE_WIDTH + Constants.PIPE_GAP_HORIZONTAL);
 				pipes.add(firstPipe);
 			}
+		}
+	}
+	
+	private int getIndexofNextPipe() {
+		if(justScoredPipe) {
+			return 1;
+		}else {
+			return 0;
 		}
 	}
 	
@@ -172,6 +181,10 @@ public class Game {
 		return pipes;
 	}
 	
+	public Pipe getNextPipe() {
+		return pipes.get(indexNextPipe);
+	}
+	
 	/**
 	 * @return Returns whether the game is running
 	 */
@@ -184,5 +197,17 @@ public class Game {
 	 */
 	public int getScore() {
 		return score;
+	}
+	
+	public Random getRandom() {
+		return random;
+	}
+	
+	public double getDistanceTraveled() {
+		return distanceTraveled;
+	}
+	
+	public boolean isBeingRendered() {
+		return beingRendered;
 	}
 }

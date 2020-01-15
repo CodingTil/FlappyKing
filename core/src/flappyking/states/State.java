@@ -18,8 +18,6 @@ public abstract class State {
 	protected Skin skin;
 	protected Texture background;
 	
-	protected int width, height;
-	
 	/**
 	 * <h1>State Constructor</h1>
 	 * Initializes all attributes
@@ -28,10 +26,8 @@ public abstract class State {
 	 * @param width Application Width
 	 * @param height Application Height
 	 */
-	public State(GameStateManager gsm, int width, int height) {
+	public State(GameStateManager gsm) {
 		this.gsm = gsm;
-		this.width = width;
-		this.height = height;
 		cam = new OrthographicCamera();
 		mouse = new Vector2();
 		skin = new Skin(Gdx.files.internal("skins/flat-earth/skin/flat-earth-ui.json"));

@@ -14,8 +14,13 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import flappyking.file.FileManager;
+import flappyking.game.ComputerBird;
+import flappyking.game.Constants;
 import flappyking.game.Game;
 import flappyking.game.PlayerBird;
+import flappyking.neat.Client;
+import flappyking.neat.Neat;
 
 /**
  * The MenuState is the Applications Menu. It is the first GameState when the
@@ -34,15 +39,15 @@ public class MenuState extends State {
 	private TextButton exit;
 
 	/**
-	 * <h1>MenuState Constructor</h1> 
-	 * Initializes all the attributes and creates the Menu UI
+	 * <h1>MenuState Constructor</h1> Initializes all the attributes and creates the
+	 * Menu UI
 	 * 
 	 * @param gsm    GameStateManager
 	 * @param width  Application Width
 	 * @param height Application Height
 	 */
-	public MenuState(GameStateManager gsm, int width, int height) {
-		super(gsm, width, height);
+	public MenuState(GameStateManager gsm) {
+		super(gsm);
 
 		stage = new Stage(new ScreenViewport());
 		table = new Table(skin);
@@ -75,8 +80,7 @@ public class MenuState extends State {
 	}
 
 	/**
-	 * <h1>User-Input-Handling Mechanism</h1> 
-	 * Handling of the User Input
+	 * <h1>User-Input-Handling Mechanism</h1> Handling of the User Input
 	 * 
 	 * UNUSED Because of use of UI Elements such as Buttons
 	 */
@@ -86,22 +90,18 @@ public class MenuState extends State {
 	}
 
 	/**
-	 * <h1>Update Mechanism</h1> 
-	 * Updates the state: 
-	 * - Checks user input
+	 * <h1>Update Mechanism</h1> Updates the state: - Checks user input
 	 * 
 	 * @param dt Unused.
 	 */
 	@Override
 	public void update(float dt) {
-		handleInput();
+
 	}
 
 	/**
-	 * <h1>Render Mechanism</h1> 
-	 * Renders the State: 
-	 * - Renders the UI Elements 
-	 * - Renders the Background
+	 * <h1>Render Mechanism</h1> Renders the State: - Renders the UI Elements -
+	 * Renders the Background
 	 * 
 	 * @param sb SpriteBatch to Render Elements on the Screen
 	 */
@@ -133,7 +133,7 @@ public class MenuState extends State {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
 				dispose();
-				gsm.set(new PlayState(gsm, width, height, new Game(new PlayerBird(Keys.SPACE), width)));
+				gsm.set(new PlayState(gsm, new Game(new PlayerBird(Keys.SPACE), true)));
 			};
 		});
 		playPlayerButton.addListener(new ClickListener() {
@@ -141,10 +141,38 @@ public class MenuState extends State {
 			public void clicked(InputEvent event, float x, float y) {
 				dispose();
 				long seed = ThreadLocalRandom.current().nextLong();
-				Game game1 = new Game(new PlayerBird(Keys.SPACE), width, new Random(seed));
-				Game game2 = new Game(new PlayerBird(Keys.ENTER), width, new Random(seed));
-				gsm.set(new PlayState(gsm, width, height, game1, game2));
+				Game game1 = new Game(new PlayerBird(Keys.SPACE), true, new Random(seed));
+				Game game2 = new Game(new PlayerBird(Keys.ENTER), true, new Random(seed));
+				gsm.set(new PlayState(gsm, game1, game2));
 			};
+		});
+		playComputerButton.addListener(new ClickListener() {
+			@Override
+			public void clicked(InputEvent event, float x, float y) {
+				dispose();
+
+				long seed = ThreadLocalRandom.current().nextLong();
+				Game game1 = new Game(new PlayerBird(Keys.SPACE), true, new Random(seed));
+				Game game2;
+
+				Client bestClient = FileManager.readFromFile(Constants.LOCATION_BEST_CLIENT);
+
+				if(bestClient == null) {
+					System.out.println("File doen't exist yet. Creating random (dumb) AI...");
+					Neat neat = new Neat(Constants.INPUT_SIZE, Constants.OUTPUT_SIZE, Constants.CLIENT_AMOUNT);
+					bestClient = neat.getClient((int) (ThreadLocalRandom.current().nextDouble() * Constants.CLIENT_AMOUNT));
+				}
+				game2 = new Game(new ComputerBird(bestClient), true, new Random(seed));
+				gsm.set(new PlayState(gsm, game1, game2));
+			};
+		});
+		trainButton.addListener(new ClickListener() {
+			@Override
+			public void clicked(InputEvent event, float x, float y) {
+				dispose();
+				
+				gsm.set(new TrainState(gsm, new Neat(Constants.INPUT_SIZE, Constants.OUTPUT_SIZE, Constants.CLIENT_AMOUNT)));
+			}
 		});
 		exit.addListener(new ClickListener() {
 			@Override

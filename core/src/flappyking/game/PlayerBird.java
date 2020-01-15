@@ -7,20 +7,28 @@ import com.badlogic.gdx.graphics.Color;
 
 public class PlayerBird extends Bird {
 	private static final long serialVersionUID = 1L;
-	private final int keyCode;
+	private int keyCode;
 	
+	/**
+	 * <h1>PlayerBird Constructor</h1>
+	 * @param keyCode
+	 */
 	public PlayerBird(int keyCode) {
 		super();
-		this.keyCode = keyCode;
+		init(keyCode);
 	}
 
 	public PlayerBird(Color fill, int keyCode) {
 		super(fill);
-		this.keyCode = keyCode;
+		init(keyCode);
 	}
 
 	public PlayerBird(Random random, int keyCode) {
 		super(random);
+		init(keyCode);
+	}
+	
+	private void init(int keyCode) {
 		this.keyCode = keyCode;
 	}
 

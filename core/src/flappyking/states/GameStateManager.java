@@ -46,6 +46,7 @@ public class GameStateManager {
 	 * @param dt The time between two frames
 	 */
 	public void update(float dt) {
+		states.peek().handleInput();
 		states.peek().update(dt);
 	}
 	

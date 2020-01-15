@@ -14,33 +14,35 @@ public class Pipe {
 	private Rectangle hitboxTopPipe, hitboxBottomPipe;
 	private Random random;
 
-	public Pipe(float x, Random random) {
+	/**
+	 * <h1>Pipe Constructor</h1> Initializes all attributes
+	 * 
+	 * @param x
+	 * @param random
+	 */
+	public Pipe(float x, boolean beingRendered, Random random) {
 		this.random = random;
-		String color = pickColor();
-		topPipe = new Texture(color + "_pipe_top.png");
-		bottomPipe = new Texture(color + "_pipe_bottom.png");
+		if(beingRendered) pickColor();
 
 		locationTopPipe = new Vector2();
 		locationBottomPipe = new Vector2();
 		velocity = new Vector2(Constants.PIPE_VELOCITY, 0);
 		hitboxTopPipe = new Rectangle();
-		hitboxBottomPipe = new Rectangle(); 
+		hitboxBottomPipe = new Rectangle();
 
-		hitboxTopPipe.setSize(topPipe.getWidth(), topPipe.getHeight());
-		hitboxBottomPipe.setSize(bottomPipe.getWidth(), bottomPipe.getHeight());
-
-		reposition(x + topPipe.getWidth());
+		hitboxTopPipe.setSize(Constants.PIPE_WIDTH, Constants.PIPE_HEIGHT);
+		hitboxBottomPipe.setSize(Constants.PIPE_WIDTH, Constants.PIPE_HEIGHT);
+		
+		reposition(x);
 	}
 
 	/**
-	 * <h1>Update Mechanism</h1> 
-	 * Updates the Pipes
+	 * <h1>Update Mechanism</h1> Updates the Pipes
 	 * 
 	 * @param dt The time between two frames
 	 */
 	public void update(float dt) {
 		velocity.scl(dt);
-		System.out.println();
 
 		locationTopPipe.add(velocity);
 		locationBottomPipe.add(velocity);
@@ -48,14 +50,6 @@ public class Pipe {
 		hitboxBottomPipe.setPosition(locationBottomPipe);
 
 		velocity.scl(1 / dt);
-	}
-
-	/**
-	 * Disposes all unused Textures
-	 */
-	public void dispose() {
-		topPipe.dispose();
-		bottomPipe.dispose();
 	}
 
 	/**
@@ -73,8 +67,8 @@ public class Pipe {
 	}
 
 	/**
-	 * <h1>Collision Detection Algorithm</h1> 
-	 * Checks, if the bird collides with one of the pipes
+	 * <h1>Collision Detection Algorithm</h1> Checks, if the bird collides with one
+	 * of the pipes
 	 * 
 	 * @param bird Games Bird
 	 * @return Returns true, if a Collision could be detected, false if not.
@@ -83,19 +77,29 @@ public class Pipe {
 		return Intersector.overlaps(bird, hitboxTopPipe) || Intersector.overlaps(bird, hitboxBottomPipe);
 	}
 
-	public String pickColor() {
+	public void pickColor() {
 		int i = random.nextInt(4);
 		switch (i) {
 		case 0:
-			return "green";
+			topPipe = PipeTextureManager.getGreenPipeTop();
+			bottomPipe = PipeTextureManager.getGreenPipeBottom();
+			break;
 		case 1:
-			return "red";
+			topPipe = PipeTextureManager.getRedPipeTop();
+			bottomPipe = PipeTextureManager.getRedPipeBottom();
+			break;
 		case 2:
-			return "blue";
+			topPipe = PipeTextureManager.getBluePipeTop();
+			bottomPipe = PipeTextureManager.getBluePipeBottom();
+			break;
 		case 3:
-			return "yellow";
+			topPipe = PipeTextureManager.getYellowPipeTop();
+			bottomPipe = PipeTextureManager.getYellowPipeBottom();
+			break;
 		default:
-			return "green";
+			topPipe = PipeTextureManager.getGreenPipeTop();
+			bottomPipe = PipeTextureManager.getGreenPipeBottom();
+			break;
 		}
 	}
 

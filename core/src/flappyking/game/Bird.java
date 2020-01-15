@@ -18,8 +18,7 @@ public abstract class Bird extends Circle {
 	 * Color is based on ThreadLocalRandom
 	 */
 	public Bird() {
-		velocity = new Vector2();
-		set(new Vector2(Constants.BIRD_X, Constants.BIRD_Y_START), Constants.BIRD_RADIUS);
+		reset();
 		this.fill = new Color(ThreadLocalRandom.current().nextFloat(), ThreadLocalRandom.current().nextFloat(), ThreadLocalRandom.current().nextFloat(), 1);
 	}
 	
@@ -52,9 +51,10 @@ public abstract class Bird extends Circle {
 	 * - Updates the location based on the velocity
 	 * 
 	 * @param dt The time between two frames
+	 * @param neuralNetworkInput Only necessary for ComputerBird
 	 * @return
 	 */
-	public void update(float dt) {
+	public void update(float dt, double[] neuralNetworkInput) {
 		velocity.add(0, Constants.GRAVITY);
 		velocity.scl(dt);
 		setPosition(getLocation().add(0, velocity.y));
@@ -66,6 +66,14 @@ public abstract class Bird extends Circle {
 	 */
 	public void jump() {
 		velocity.y = Constants.JUMP_FORCE;
+	}
+	
+	/**
+	 * Resets all location-related parameters
+	 */
+	public void reset() {
+		velocity = new Vector2();
+		set(new Vector2(Constants.BIRD_X, Constants.BIRD_Y_START), Constants.BIRD_RADIUS);
 	}
 	
 	/**

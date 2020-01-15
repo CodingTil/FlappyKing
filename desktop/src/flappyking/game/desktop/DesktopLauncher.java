@@ -14,11 +14,9 @@ public class DesktopLauncher {
 		DisplayMode displaymode = LwjglApplicationConfiguration.getDesktopDisplayMode();
 		config.width = displaymode.width;
 		config.height = displaymode.height;
-		config.foregroundFPS = displaymode.refreshRate;
+		config.foregroundFPS = 60;
 		config.title = Constants.TITLE;
 		config.fullscreen = true;
-		config.allowSoftwareMode = true;
-		config.vSyncEnabled = true;
 		config.resizable = false;
 		new LwjglApplication(flappyking, config);
 	}
